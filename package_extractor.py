@@ -7,8 +7,6 @@ import os
 from ctypes import cdll, c_char_p, create_string_buffer
 from Crypto.Cipher import AES
 import binascii
-import text_decoding
-from version import version_str
 
 """
 Main program with every other file concatenated into a single file
@@ -17,16 +15,6 @@ Main program with every other file concatenated into a single file
 
 def get_file_typename(file_type, file_subtype, ref_id, ref_pkg):
     if file_type == 8:
-        if ref_id == 5741 and ref_pkg == 4:
-            return 'Mapping Data'
-        elif ref_id == 6794 and ref_pkg == 4:
-            return 'Text Data'
-        elif ref_id == 6792 and ref_pkg == 4:
-            return 'Text Header'
-        elif ref_id == 4519 and ref_pkg == 3:
-            return 'Model Header 1'
-        elif ref_id == 4500 and ref_pkg == 3:
-            return 'Model Header 2'
         return '8080xxxx Structure File'
     elif file_type == 24 and file_subtype == 0:
         return 'Old Mapping Data'
@@ -570,70 +558,24 @@ class Package:
             print(f"Wrote to {entry.FileName} successfully")
 
 
-# dir = 'F:/Steam/steamapps/common/Destiny 2/packages/'
-
-# pkg = Package(f'{dir}w64_eden_activities_01eb_6.pkg')
-# pkg.extract_package()  # no 4?
-# text_decoding.automatic_folder_converter(f'output/{pkg.package_id}/')
-
-
-banned_folders = [
-    'img',
-    'activities',
-    'environments',
-    'sandbox',
-    'globals',
-    'investment',
-    'shared',
-    'ui',
-    # 'audio',
-    'npc'
-]
-
-
 def unpack_all(path):
     all_packages = os.listdir(path)
-    update_db_packages = []
-    # unpacked_packages = os.listdir(f'{version_str}/output_all/')
-    unpacked_packages = os.listdir(f'C:/d2_output_2_9_1_0/')
     seen_pkgs = []
     unpack_pkgs = []
     for pkg in all_packages:
         pkg_trimmed = pkg[:-5]
-        print(pkg[4:-6])
         if pkg_trimmed not in seen_pkgs:
             seen_pkgs.append(pkg_trimmed)
-            update_db_packages.append(pkg)
-            if pkg[4:-6] not in unpacked_packages:
-                unpack_pkgs.append(pkg)
+            unpack_pkgs.append(pkg)
     print(unpack_pkgs)
     for pkg in unpack_pkgs:  # Change to all_packages with the return in class to change all the DB only, else use unpack_pkgs
-        # if 'audio' not in pkg:
-        # banned = False
-        # for bf in banned_folders:
-        #     if bf in pkg:
-        #         banned = True
-        # if banned or 'audio' not in pkg:
-        #     continue
         pkg = Package(f'{path}/{pkg}')
         print(pkg.package_directory)
         pkg.extract_package()
 
 
-def check_all_files_exist():
-    pkg_db.start_db_connection()
-    all_packages = os.listdir(f'{version_str}/output_all/')
-    for pkg in all_packages:
-        entries = pkg_db.get_entries_from_table(pkg, 'ID')
-        if len(entries) != len(os.listdir(f'{version_str}/output_all/' + pkg)):
-            print(f'{package_id} not same {len(entries)} vs {len(os.listdir(f"{version_str}/output_all/" + pkg))}')
-            continue
-            # pkg = Package(f'M:/D2_Datamining/d2packages/{version_str}/w64_{pkg}_0.pkg')
-            pkg = Package(f'G:/d2packages/{version_str}/w64_{pkg}_0.pkg')
-            pkg.extract_package()
-
-
 if __name__ == '__main__':
+    version_str = '2_9_1_0'
     print(f"Working on version {version_str}")
     try:
         os.mkdir(f'{version_str}/')
@@ -643,8 +585,4 @@ if __name__ == '__main__':
             os.mkdir(f'{version_str}/output_all/')
         except FileExistsError:
             pass
-    # unpack_all(f'M:/D2_Datamining/d2packages/{version_str}')
-    # unpack_all(f'F:/Steam/steamapps/common/Destiny 2/packages')
-    # unpack_all(f'G:/d2packages/{version_str}')  # for versions after 2_9_0_2
     unpack_all('G:/SteamLibrary/steamapps/common/Destiny 2/packages/')
-    # check_all_files_exist()
